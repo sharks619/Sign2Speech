@@ -9,7 +9,7 @@ from yacs.config import CfgNode
 
 from typing import List
 
-from .sign_dataset import SignDataset
+from .sign_dataset_inference import SignDataset_inference
 from .transforms import build_transform_gen
 from .vocabulary import build_vocab
 
@@ -18,7 +18,7 @@ def tokenize_text(text: str) -> List[str]:
     return text.split()
 
 
-def build_dataset(cfg: CfgNode) -> Dataset:
+def build_dataset_inference(cfg: CfgNode) -> Dataset:
     logger = logging.getLogger()
 
     data_root = cfg.DATASET.DATA_ROOT
@@ -29,7 +29,7 @@ def build_dataset(cfg: CfgNode) -> Dataset:
     exclude_token = cfg.DATASET.VOCABULARY.EXCLUDE_TOKENS
 
     tfm_gens = build_transform_gen(cfg, is_train=False)
-    train_dataset = SignDataset(
+    train_dataset = SignDataset_inference(
         data_root,
         ann_file_train,
         img_prefix=img_prefix_train,
@@ -43,7 +43,7 @@ def build_dataset(cfg: CfgNode) -> Dataset:
 
 
     tfm_gens = build_transform_gen(cfg, is_train=False)
-    val_dataset = SignDataset(
+    val_dataset = SignDataset_inference(
         data_root,
         ann_file_val,
         img_prefix=img_prefix_val,
@@ -115,14 +115,14 @@ class BucketBatchSampler(Sampler):
                 continue
             yield batch_inds
 
-def build_data_loader(cfg) -> DataLoader:
+def build_data_loader_inference(cfg) -> DataLoader:
     batch_per_gpu = cfg.SOLVER.BATCH_PER_GPU
     worker_per_gpu = cfg.DATASET.WORKER_PER_GPU
     GPU_ID = cfg.GPU_ID
     if not isinstance(GPU_ID, list):
         GPU_ID = [GPU_ID]
 
-    train_dataset, val_dataset = build_dataset(cfg)
+    train_dataset, val_dataset = build_dataset_inference(cfg)
     # multiple data loaders
     train_loader = DataLoader(
         dataset=train_dataset,
@@ -145,40 +145,3 @@ def build_data_loader(cfg) -> DataLoader:
 
     return train_loader, val_loader
 
-
-from torch.utils.data import DataLoader, DistributedSampler
-
-# def build_data_loader(cfg, rank, world_size):
-#     batch_per_gpu = cfg.SOLVER.BATCH_PER_GPU
-#     worker_per_gpu = cfg.DATASET.WORKER_PER_GPU
-#     GPU_ID = cfg.GPU_ID
-#     if not isinstance(GPU_ID, list):
-#         GPU_ID = [GPU_ID]
-#
-#     train_dataset, val_dataset = build_dataset(cfg)
-#
-#     # DistributedSampler 추가
-#     train_sampler = DistributedSampler(train_dataset, num_replicas=world_size, rank=rank)
-#     val_sampler = DistributedSampler(val_dataset, num_replicas=world_size, rank=rank, shuffle=False)
-#
-#     train_loader = DataLoader(
-#         dataset=train_dataset,
-#         collate_fn=train_dataset.collate,
-#         sampler=train_sampler,  # DistributedSampler 사용
-#         batch_size=batch_per_gpu,
-#         drop_last=False,
-#         num_workers=4,  # num_workers 값을 줄임
-#         pin_memory=False  # pin_memory 설정 변경
-#     )
-#
-#     val_loader = DataLoader(
-#         dataset=val_dataset,
-#         collate_fn=val_dataset.collate,
-#         # sampler=val_sampler,  # DistributedSampler 사용
-#         batch_size=1,
-#         drop_last=False,
-#         num_workers=1,  # num_workers 값을 줄임
-#         pin_memory=False  # pin_memory 설정 변경
-#     )
-#
-#     return train_loader, val_loader

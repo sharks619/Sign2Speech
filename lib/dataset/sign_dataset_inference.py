@@ -13,7 +13,7 @@ from typing import Callable, List, NoReturn, Optional, Tuple
 from .transforms import apply_transform_gens
 import pdb
 
-class SignDataset(Dataset):
+class SignDataset_inference(Dataset):
 
     def __init__(
         self,
@@ -28,7 +28,7 @@ class SignDataset(Dataset):
         exclude_token=None
     ) -> NoReturn:
         ann_file = os.path.join(data_root, ann_file)
-
+        self.is_train = is_train
         # option for videos
         self.tfm_gens = tfm_gens
 
@@ -39,7 +39,7 @@ class SignDataset(Dataset):
 
         self.img_prefix = os.path.join(data_root, img_prefix)
         self.examples = self.load_examples_from_csv(ann_file)
-        self.is_train = is_train
+
 
     def __getitem__(self, i):
         assert hasattr(self, "vocab")
@@ -50,31 +50,20 @@ class SignDataset(Dataset):
 
         # ramdom duplicate and drop
         frames_inds = np.array([i for i in range(len(frames_path))]).astype(np.int)
-        if self.is_train:
-            rand_inds = np.random.choice(
-                len(frames_path), int(len(frames_path) * 0.2), replace=False
-            )
 
-            # random frame insertion
-            total_inds = np.concatenate([frames_inds, rand_inds], 0)
-            total_inds = np.sort(total_inds)
-
-            # random frame dropping
-            rand_inds = np.random.choice(len(total_inds), int(len(total_inds) * 0.2), replace=False)
-            selected = np.delete(total_inds, rand_inds)
-        else:
-            selected = frames_inds
-        # frames = np.stack([cv2.imread(f_path, cv2.IMREAD_COLOR) for f_path in frames_path], axis=0)  # noqa
+        selected = frames_inds
 
         # read selected images
-        
-        try:
-            frames = np.stack([cv2.imread(frames_path[i], cv2.IMREAD_COLOR) for i in selected], axis=0)
-        except ValueError:
-            print(example)
-            #pdb.set_trace()
-        if self.tfm_gens is not None:
-            frames, _ = apply_transform_gens(self.tfm_gens, frames)
+        if self.is_train:
+            frames = None
+        else:
+            try:
+                frames = np.stack([cv2.imread(frames_path[i], cv2.IMREAD_COLOR) for i in selected], axis=0)
+            except ValueError:
+                print(example)
+                #pdb.set_trace()
+            if self.tfm_gens is not None:
+                frames, _ = apply_transform_gens(self.tfm_gens, frames)
 
         # gloss -> CTC supervision signal
         tokens = example["Kor"]
@@ -85,35 +74,45 @@ class SignDataset(Dataset):
         return len(self.examples)
 
     def load_examples_from_csv(self, ann_file: str) -> List[dict]:
-        annotations = pd.read_csv(ann_file, sep=",",encoding='utf-8')
-        annotations = annotations[["Filename", "Kor"]]
+        if self.is_train:
+            annotations = pd.read_csv(ann_file, sep=",",encoding='utf-8')
+            annotations = annotations[["Filename", "Kor"]]
 
-        examples = []
-        for i in range(len(annotations)):
-            example = dict(annotations.iloc[i])
-            # glob all image locations
-            # print(os.path.join(self.img_prefix, example["Filename"],"*.jpg"))
-            frames_path = glob.glob(os.path.join(self.img_prefix, example["Filename"],"*.jpg"))
+            examples = []
+            for i in range(len(annotations)):
+                example = dict(annotations.iloc[i])
+                # glob all image locations
+                # print(os.path.join(self.img_prefix, example["Filename"],"*.jpg"))
+                frames_path = glob.glob(os.path.join(self.img_prefix, example["Filename"],"*.jpg"))
+                # print(frames_path)
+                frames_path.sort()
+                example["frames"] = frames_path
+
+                # tokenization
+                glosses_str = example["Kor"]
+                if self.tokenize is not None and isinstance(glosses_str, str):
+                    if self.lower:
+                        glosses_str = glosses_str.lower()
+                    tokens = self.tokenize(glosses_str.rstrip("\n"))
+                    example["Kor"] = tokens
+                    '''
+                    example["Kor"] = [
+                        token for token in tokens
+                        # exclude some tokens in annotations, i.e., ["__ON__", "__OFF__"].
+                        if (self.exclude_token is not None and token not in self.exclude_token)
+                    ]
+                    '''
+                examples.append(example)
+        else:
+            examples = []
+            example = {}
+            frames_path = glob.glob(os.path.join(self.img_prefix, "*.jpg"))
             # print(frames_path)
             frames_path.sort()
             example["frames"] = frames_path
-
-            # tokenization
-            glosses_str = example["Kor"]
-            if self.tokenize is not None and isinstance(glosses_str, str):
-                if self.lower:
-                    glosses_str = glosses_str.lower()
-                tokens = self.tokenize(glosses_str.rstrip("\n"))
-                print(glosses_str, tokens)
-                example["Kor"] = tokens
-                '''
-                example["Kor"] = [
-                    token for token in tokens
-                    # exclude some tokens in annotations, i.e., ["__ON__", "__OFF__"].
-                    if (self.exclude_token is not None and token not in self.exclude_token)
-                ]
-                '''
+            example["Kor"] = ''
             examples.append(example)
+            print()
 
         return examples
 

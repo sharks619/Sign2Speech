@@ -1,11 +1,11 @@
 DATASET:
-  DATA_ROOT: "/home/storage/sde_2T"
+  DATA_ROOT: "/home/fjqmfl5676/SKT" #"./data"
   TRAIN:
-    IMG_PREFIX: "NIA_sen"
-    ANN_FILE: "KSL_TRAIN_QD_final.csv"
+    IMG_PREFIX: "dataset"
+    ANN_FILE: "train_new.csv"
   VAL:
-    IMG_PREFIX: "NIA_sen"
-    ANN_FILE: "KSL_TEST_QD_final.csv"
+    IMG_PREFIX: "frames"
+    ANN_FILE: ""
 
   WORKER_PER_GPU: 16
 

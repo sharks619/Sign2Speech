@@ -17,6 +17,13 @@ from lib.engine import default_argument_parser, default_setup
 from lib.model import SignModel
 from lib.solver import build_lr_scheduler, build_optimizer
 from lib.utils import AverageMeter, clean_ksl, wer_list
+
+import torch.distributed as dist
+import torch.multiprocessing as mp
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data import DataLoader, DistributedSampler
+
+
 #os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 tf.config.set_visible_devices([], "GPU")
 best_wer = 100
@@ -26,14 +33,39 @@ def setup(args):
     """
     Create configs and perform basic setups.
     """
-    
+
     cfg = get_cfg()
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg = default_setup(cfg, args)
     return cfg
 
-
+# def setup(rank, world_size, args):
+#     """
+#     Create configs and perform basic setups.
+#     """
+#     # DistributedDataParallel을 위한 초기화
+#     dist.init_process_group(
+#         backend='nccl',
+#         init_method='tcp://163.152.177.36:12345',  # 주어진 TCP 주소를 사용
+#         world_size=world_size,
+#         rank=rank
+#     )
+#
+#     # GPU 설정
+#     torch.cuda.set_device(rank)
+#
+#     # 기존 설정 불러오기
+#     cfg = get_cfg()
+#     cfg.merge_from_file(args.config_file)
+#     cfg.merge_from_list(args.opts)
+#     cfg = default_setup(cfg, args)
+#
+#     # rank 및 world_size 정보를 추가로 설정 (optional)
+#     cfg.rank = rank
+#     cfg.world_size = world_size
+#
+#     return cfg
 
 
 def main(args):
@@ -45,6 +77,9 @@ def main(args):
     cfg = setup(args)
     cfg.freeze()
     train_loader, val_loader = build_data_loader(cfg)
+    print('train', train_loader.dataset.examples)
+    print('val', val_loader.dataset.examples)
+    print(train_loader.dataset.vocab)
 
 
     # loss_gls = nn.CTCLoss(blank=train_loader.dataset.sil_idx, zero_infinity=True).cuda()
@@ -78,7 +113,7 @@ def main(args):
     
 
     if args.eval_only:
-        metricss=validate(cfg,model, val_loader, loss_gls)
+        metricss = validate(cfg,model, val_loader, loss_gls)
         print("valildation loss: {metricss[loss]:.3f}  validation WER: {metricss[wer]:.3f}  ".format(metricss=metricss))
         return
     writer = SummaryWriter(cfg.OUTPUT_DIR)
@@ -196,6 +231,7 @@ def main(args):
         )
 
 
+
 def validate(cfg, model, val_loader, criterion) -> dict:
     logger = logging.getLogger()
 
@@ -304,4 +340,6 @@ if __name__ == "__main__":
     
     args = default_argument_parser().parse_args()
     args.config_file='configs/config.yaml'
+    world_size = torch.cuda.device_count() # new
+
     main(args)

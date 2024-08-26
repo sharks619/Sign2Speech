@@ -4,8 +4,8 @@ DATASET:
     IMG_PREFIX: "dataset"
     ANN_FILE: "train_new.csv"
   VAL:
-    IMG_PREFIX: "dataset"
-    ANN_FILE: "val_new.csv"
+    IMG_PREFIX: "dataset/NIA_SL_SEN0227_REAL16_F"
+    ANN_FILE: ""
 
   WORKER_PER_GPU: 16  #16
 
@@ -22,7 +22,7 @@ DATASET:
     - __OFF__
 
 SOLVER:
-  BATCH_PER_GPU: 2 #2
+  BATCH_PER_GPU: 1 #2
   BIAS_LR_FACTOR: 1.0
 
   RAMPDOWN_ITERS: 0
@@ -49,9 +49,9 @@ PERIODS:
   EVAL: 1
   CHECKPOINT: 1
   LOG_ITERS: 1
-OUTPUT_DIR: outputs/ksl
-RESUME: ""
-GPU_ID: 0
+OUTPUT_DIR: outputs/ksl_test
+RESUME: "/home/fjqmfl5676/PycharmProjects/Sign2Speech/outputs/ksl/seed_33/model_best.pth.tar"
+GPU_ID: 5
 NOTE: ""
 
 SEED: 33
