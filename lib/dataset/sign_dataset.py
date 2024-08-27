@@ -104,7 +104,7 @@ class SignDataset(Dataset):
                 if self.lower:
                     glosses_str = glosses_str.lower()
                 tokens = self.tokenize(glosses_str.rstrip("\n"))
-                print(glosses_str, tokens)
+                # print(glosses_str, tokens)
                 example["Kor"] = tokens
                 '''
                 example["Kor"] = [

@@ -30,6 +30,17 @@ def setup(args):
     return cfg
 import glob
 
+def arr2sen(sequences, vocab):
+    # Reverse the vocab dictionary to map from index to word
+    index_to_word = {index: word for word, index in vocab.items()}
+    # Convert each sequence in sequences
+    words_sequences = []
+    for sequence in sequences:
+        words_sequence = [index_to_word.get(idx, '<unk>') for idx in sequence]
+        words_sequences.append(words_sequence)
+
+    return words_sequences
+
 def main(args):
     device = torch.device("cpu")
     start = time.time()
@@ -39,7 +50,11 @@ def main(args):
     cfg.freeze()
     with open('vocab.pickle', 'rb') as f:
         vocab = pickle.load(f)
-    train_loader, test_loader = build_data_loader_inference(cfg)
+    _, test_loader = build_data_loader_inference(cfg)
+
+    vocab = {'<si>': 0, '<unk>': 1, '<pad>': 2, '차내리다': 3, '곳': 4, '버스': 5, '내리다': 6, '맞다': 7, '전': 8, '지름길': 9, '송파': 10,
+     '지하철': 11, '무엇': 12, '가다': 13, '방법': 14, '여기': 15, '목적': 16, '건너다': 17, '명동': 18, '보다': 19, '시청': 20, '신호등': 21,
+     '저기': 22, '다음': 23, '도착': 24, '우회전': 25, '좌회전': 26, '찾다': 27, '길': 28}
     # test1 = time.time()
     # frames_path = glob.glob(os.path.join(os.path.join(cfg.DATASET.DATA_ROOT, cfg.DATASET.VAL.IMG_PREFIX), "*.jpg"))
     # frames_path.sort()
@@ -92,7 +107,6 @@ def validate(model, val_dataset, vocab, device):
     model.eval()
 
     all_glosses = []
-    decoder = vocab.arrays_to_sentences
 
     with torch.no_grad():
         val_dataset = val_dataset.unsqueeze(0).to(device).detach()
@@ -127,13 +141,11 @@ def validate(model, val_dataset, vocab, device):
                 [x[0] for x in groupby(tmp_gloss_sequences[seq_idx])]
             )
         all_glosses.extend(decoded_gloss_sequences)
-        decoded = decoder(arrays=decoded_gloss_sequences)
-        for _dec in decoded[:4]:
-            logger.info(" ".join(_dec))
-            print()
+
     print(len(val_dataset))
     assert len(all_glosses) == len(val_dataset)
-    decoded_gls = vocab.arrays_to_sentences(arrays=all_glosses)
+    decoded_gls = arr2sen(all_glosses,vocab)
+    print(all_glosses, decoded_gls)
     # Gloss clean-up function
     
     # Construct gloss sequences for metrics

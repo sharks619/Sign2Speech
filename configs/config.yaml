@@ -1,11 +1,11 @@
 DATASET:
   DATA_ROOT: "/home/fjqmfl5676/SKT" #"./data"
   TRAIN:
-    IMG_PREFIX: "dataset"
-    ANN_FILE: "train_new.csv"
+    IMG_PREFIX: "fine_tuned"
+    ANN_FILE: "fine_tuned.csv"
   VAL:
-    IMG_PREFIX: "dataset"
-    ANN_FILE: "val_new.csv"
+    IMG_PREFIX: "fine_tuned"
+    ANN_FILE: "fine_tuned.csv"
 
   WORKER_PER_GPU: 16  #16
 
@@ -49,8 +49,8 @@ PERIODS:
   EVAL: 1
   CHECKPOINT: 1
   LOG_ITERS: 1
-OUTPUT_DIR: outputs/ksl
-RESUME: ""
+OUTPUT_DIR: outputs/fine_tuned
+RESUME: "/home/fjqmfl5676/PycharmProjects/Sign2Speech/outputs/ksl/seed_33/model_best.pth.tar"
 GPU_ID: 0
 NOTE: ""
 

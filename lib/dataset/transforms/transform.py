@@ -210,6 +210,7 @@ class ScaleTransform(Transform):
         pass
 
 
+
 class CropTransform(Transform):
 
     def __init__(
@@ -222,7 +223,6 @@ class CropTransform(Transform):
         t0: Optional[int] = None,
         z: Optional[int] = None
     ):
-        # TODO: flip the order of w and h.
         """
         Args:
             x0, y0, w, h (int): crop the image(s) by img[y0:y0+h, x0:x0+w].

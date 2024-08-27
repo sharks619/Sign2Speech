@@ -72,13 +72,13 @@ def main(args):
     global best_wer
     logger = logging.getLogger()
 
-    EPOCHS = 80
+    EPOCHS = 500
     start_epoch = 0
     cfg = setup(args)
     cfg.freeze()
     train_loader, val_loader = build_data_loader(cfg)
-    print('train', train_loader.dataset.examples)
-    print('val', val_loader.dataset.examples)
+    # print('train', train_loader.dataset.examples)
+    # print('val', val_loader.dataset.examples)
     print(train_loader.dataset.vocab)
 
 
@@ -93,7 +93,8 @@ def main(args):
     if cfg.RESUME:
         assert os.path.isfile(cfg.RESUME), "Error: no checkpoint directory found!"
         checkpoint = torch.load(cfg.RESUME)
-        best_wer=checkpoint['best_wer']
+        # best_wer=checkpoint['best_wer']
+        best_wer = 100
         start_epoch = checkpoint["epoch"]
         model.load_state_dict(checkpoint['state_dict'])
         # model = nn.DataParallel(model).cuda()
