@@ -1,9 +1,9 @@
 # 손말이음 - 청각장애인을 위한 AI 기반 실시간 의사소통 서비스
 
-## Overview
-손말이음(Sonmalyieum) is an AI-based real-time communication service developed to assist hearing-impaired and non-impaired individuals in communicating effectively. The project was created during the SKT FLY AI Academy and features three core functionalities: Sign2Speech, Speech2Sign, and Multi-party Communication. This repository contains the code for the Sign2Speech feature, which translates Korean Sign Language (KSL) into text and speech in real-time.
-
 ![Sonmalyieum Overview](./image/손말이음.png)
+
+## Overview
+손말이음(Sonmalyieum) is an AI-based real-time communication service developed to assist hearing-impaired and non-impaired individuals in communicating effectively. The project was created during the "SKT FLY AI Academy" and features three core functionalities: 수어번역(Sign2Speech), 수어생성(Speech2Sign), and 다중대화(Multi-party Communication). This repository contains the code for the Sign2Speech feature, which translates Korean Sign Language (KSL) into text and speech in real-time.
 
 ## Sign2Speech Feature
 
@@ -23,17 +23,6 @@ The Sign2Speech functionality was developed using the KSL-GUIDE dataset, a large
 - Speech2Sign: (Not included in this repository) Converts spoken language into sign language using a 3D avatar.
 - Multi-party Communication: (Not included in this repository) Facilitates group communication with real-time speech and sign language translation.
 
-## How to Use
-To run the Sign2Speech feature:
-
-Clone the repository:
-git clone <repository-url>
-Install dependencies:
-pip install -r requirements.txt
-Run the translation script:
-python sign2speech.py
-(Optional) Use a webcam or pre-recorded video for input by modifying the input_source in the code.
-
 ## Future Work
 We plan to expand this feature by:
 
@@ -43,4 +32,3 @@ We plan to expand this feature by:
 
 ## Contributing
 Feel free to contribute to this project by submitting pull requests or reporting issues.
-
